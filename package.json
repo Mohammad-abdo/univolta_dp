@@ -1,0 +1,52 @@
+{
+  "name": "univolta-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint \"src/**/*.ts\"",
+    "migrate": "prisma migrate deploy --schema ./prisma/schema.prisma",
+    "migrate:dev": "prisma migrate dev --schema ./prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "jest --runInBand",
+    "postinstall": "prisma generate --schema ./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "@types/multer": "^2.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^7.2.0",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.2.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^22.10.1",
+    "@types/supertest": "^2.0.16",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "jest": "^29.7.0",
+    "prisma": "^6.1.0",
+    "supertest": "^7.1.1",
+    "ts-jest": "^29.3.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.6.3"
+  }
+}

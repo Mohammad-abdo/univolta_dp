@@ -1,0 +1,439 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  editor
+  user
+  university
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       User[]
+
+  @@index([name])
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles RolePermission[]
+
+  @@unique([resource, action])
+  @@index([resource])
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEW
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  phone        String?
+  passwordHash String
+  role         UserRole  @default(user)
+  customRoleId String?
+  universityId String? // For university partners
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  customRole    Role?          @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+  university    University?    @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  profile       Profile?
+  refreshTokens RefreshToken[]
+  applications  Application[]
+  testimonials  Testimonial[]
+  alerts        Alert[]
+
+  @@index([role])
+  @@index([customRoleId])
+  @@index([universityId])
+  @@index([deletedAt])
+}
+
+model Profile {
+  userId    String  @id
+  avatarUrl String?
+  bio       String?
+  settings  Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model University {
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique
+  country               String
+  city                  String
+  language              String
+  description           String?
+  about                 String?
+  website               String?
+  logoUrl               String?
+  bannerUrl             String?
+  establishmentYear     Int?
+  worldRanking          Int?
+  localRanking          Int?
+  studentsNumber        String?
+  admissionRequirements Json?
+  services              Json?
+  tourImages            Json?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  programs         Program[]
+  applications     Application[]
+  testimonials     Testimonial[]
+  partners         User[] // University partner users
+  alerts           Alert[]
+  departments      Department[]
+  semesters        Semester[]
+  educationalYears EducationalYear[]
+  degrees          Degree[]
+
+  @@index([country])
+  @@index([language])
+  @@index([isActive])
+}
+
+model Program {
+  id                  String   @id @default(cuid())
+  universityId        String
+  name                String
+  slug                String   @unique
+  degree              String?
+  degreeId            String? // Reference to Degree model
+  duration            String?
+  language            String?
+  tuition             String?
+  tuitionNotes        String?
+  studyYear           Int?
+  educationalYearId   String? // Reference to EducationalYear model
+  lastApplicationDate String?
+  classSchedule       String? // Morning/Evening
+  studyMethod         String? // Undefined, Online, On-campus, Hybrid
+  startDate           String? // Start of study date (e.g., "01/09")
+  coreSubjects        Json? // Array of subjects
+  about               String?
+  department          String?
+  departmentId        String? // Reference to Department model
+  programImages       Json? // Array of image URLs for tour gallery
+  bannerImage         String? // Hero/banner image for program detail page
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  university         University       @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  departmentRef      Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  degreeRef          Degree?          @relation(fields: [degreeId], references: [id], onDelete: SetNull)
+  educationalYearRef EducationalYear? @relation(fields: [educationalYearId], references: [id], onDelete: SetNull)
+  applications       Application[]
+
+  @@index([degree])
+  @@index([department])
+  @@index([departmentId])
+  @@index([degreeId])
+  @@index([educationalYearId])
+  @@index([isActive])
+}
+
+model Department {
+  id           String   @id @default(cuid())
+  universityId String
+  name         String
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  programs   Program[]
+
+  @@unique([universityId, name])
+  @@index([universityId])
+  @@index([isActive])
+}
+
+model Semester {
+  id           String    @id @default(cuid())
+  universityId String
+  name         String // e.g., "Fall 2024", "Spring 2025"
+  startDate    DateTime?
+  endDate      DateTime?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+  @@index([isActive])
+}
+
+model EducationalYear {
+  id           String   @id @default(cuid())
+  universityId String
+  name         String // e.g., "First Year", "Second Year", "Year 1", "Year 2"
+  yearNumber   Int? // 1, 2, 3, 4, etc.
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  programs   Program[]
+
+  @@unique([universityId, name])
+  @@index([universityId])
+  @@index([isActive])
+}
+
+model Degree {
+  id           String   @id @default(cuid())
+  universityId String
+  name         String // e.g., "Bachelor's", "Master's", "PhD", "Diploma"
+  abbreviation String? // e.g., "BSc", "MSc", "PhD"
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  programs   Program[]
+
+  @@unique([universityId, name])
+  @@index([universityId])
+  @@index([isActive])
+}
+
+model Application {
+  id                    String            @id @default(cuid())
+  fullName              String
+  email                 String
+  phone                 String?
+  personalAddress       String?
+  dateOfBirth           DateTime?
+  academicQualification String?
+  identityNumber        String?
+  country               String?
+  additionalServices    Json? // Array of service types
+  additionalNotes       String?
+  status                ApplicationStatus @default(PENDING)
+  notes                 String?
+  isBlocked             Boolean           @default(false)
+  blockedReason         String?           // Reason for blocking
+  blockedAt             DateTime?
+  universityId          String?
+  programId             String?
+  userId                String?
+  applicationFee        Decimal?          @default(0)
+  additionalFee         Decimal?          @default(0)
+  totalFee              Decimal?          @default(0)
+  paymentMethod         String? // credit_card, paypal
+  paymentStatus         String? // pending, paid, failed
+  paymentDetails        Json? // Payment info (card details, PayPal email, etc.)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  university    University?                @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  program       Program?                   @relation(fields: [programId], references: [id], onDelete: SetNull)
+  user          User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  documents     ApplicationDocument[]
+  payment       Payment?
+  statusHistory ApplicationStatusHistory[]
+
+  @@index([status])
+  @@index([email])
+  @@index([isBlocked])
+  @@index([createdAt])
+}
+
+model ApplicationDocument {
+  id            String   @id @default(cuid())
+  applicationId String
+  documentType  String // high_school_card, language_proof, passport, other
+  fileName      String
+  fileUrl       String
+  fileSize      Int?
+  mimeType      String?
+  uploadedAt    DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([documentType])
+}
+
+model Payment {
+  id             String    @id @default(cuid())
+  applicationId  String    @unique
+  amount         Decimal
+  currency       String    @default("USD")
+  paymentMethod  String // credit_card, paypal
+  paymentStatus  String // pending, completed, failed, refunded
+  paymentDetails Json? // Transaction details
+  transactionId  String? // External payment gateway transaction ID
+  invoiceUrl     String? // Student uploaded invoice file URL
+  invoiceFileName String? // Original invoice file name
+  paidAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([paymentStatus])
+  @@index([transactionId])
+  @@index([createdAt])
+}
+
+model ApplicationStatusHistory {
+  id             String             @id @default(cuid())
+  applicationId  String
+  previousStatus ApplicationStatus?
+  newStatus      ApplicationStatus
+  changedBy      String? // User ID who made the change
+  reason         String? // Reason for status change
+  notes          String? // Additional notes
+  createdAt      DateTime           @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([createdAt])
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  userId       String?
+  universityId String?
+  author       String
+  role         String?
+  title        String?
+  content      String
+  rating       Int?
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+}
+
+model Faq {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String
+  category    String?
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Setting {
+  key       String   @id
+  value     Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AlertType {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  PAYMENT
+  SYSTEM
+}
+
+enum AlertSeverity {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Alert {
+  id           String        @id @default(cuid())
+  type         AlertType
+  severity     AlertSeverity @default(INFO)
+  title        String
+  message      String
+  resource     String? // e.g., "universities", "programs", "applications"
+  resourceId   String? // ID of the affected resource
+  userId       String? // User who performed the action
+  universityId String? // Related university (for university dashboard)
+  isRead       Boolean       @default(false)
+  metadata     Json? // Additional data about the alert
+  createdAt    DateTime      @default(now())
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([universityId])
+  @@index([resource])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}
