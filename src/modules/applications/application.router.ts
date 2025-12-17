@@ -326,7 +326,7 @@ router.patch("/:id/status", requirePermission("applications", "update"), async (
       currentApplication.status,
       status,
       req.user?.id,
-      application.universityId,
+      application.universityId ?? undefined,
       {
         email: application.email,
         universityName: application.university?.name,
@@ -374,7 +374,7 @@ router.delete("/:id", requirePermission("applications", "delete"), async (req, r
       application.fullName,
       application.id,
       req.user?.id,
-      application.universityId,
+      application.universityId ?? undefined,
       { email: application.email }
     );
 

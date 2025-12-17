@@ -78,4 +78,51 @@ export function requireEditor(req, _res, next) {
     }
     next();
 }
+/**
+ * Optional authentication middleware - sets req.user if token is valid, but doesn't fail if token is missing
+ * Useful for public routes that can work with or without authentication
+ */
+export async function optionalAuth(req, _res, next) {
+    try {
+        const token = extractBearerToken(req);
+        if (!token) {
+            // No token provided - that's okay for optional auth
+            next();
+            return;
+        }
+        const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+        const user = await prisma.user.findFirst({
+            where: { id: payload.sub, deletedAt: null },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                isActive: true,
+                universityId: true,
+            },
+        });
+        if (user && user.isActive) {
+            req.user = {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                universityId: user.universityId,
+            };
+        }
+        // If user not found or inactive, just continue without req.user
+        // This allows the route to work for both authenticated and unauthenticated users
+        next();
+    }
+    catch (error) {
+        // If token is invalid/expired, just continue without req.user
+        // Don't throw error for optional auth
+        if (error instanceof jwt.TokenExpiredError || error instanceof jwt.JsonWebTokenError) {
+            next();
+            return;
+        }
+        next(error);
+    }
+}
 //# sourceMappingURL=auth.js.map

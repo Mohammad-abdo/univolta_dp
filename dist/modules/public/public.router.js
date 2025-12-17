@@ -445,7 +445,7 @@ router.get("/testimonials", async (req, res, next) => {
             rating: t.rating,
             university: t.university?.name,
             country: t.university?.country,
-            avatarUrl: t.avatarUrl,
+            avatarUrl: t.avatarUrl || null,
         }));
         res.json(serialized);
     }

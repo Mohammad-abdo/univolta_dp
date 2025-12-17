@@ -23,7 +23,11 @@ router.post("/login", async (req, res, next) => {
         }
         if (!userExists.isActive) {
             console.log(`[AUTH] Login attempt failed: User ${email} is inactive`);
-            throw new UnauthorizedError("Invalid credentials");
+            // Check if it's a university user waiting for approval
+            if (userExists.role === "university") {
+                throw new UnauthorizedError("Your account is pending admin approval. Please wait for approval before logging in.");
+            }
+            throw new UnauthorizedError("Account is inactive. Please contact support.");
         }
         if (userExists.deletedAt) {
             console.log(`[AUTH] Login attempt failed: User ${email} is deleted`);
@@ -153,6 +157,116 @@ router.post("/signup", async (req, res, next) => {
         next(error);
     }
 });
+// University registration endpoint - DISABLED: Only admin can add universities through dashboard
+/*
+router.post("/signup/university", async (req, res, next) => {
+  try {
+    const input = universitySignupSchema.parse(req.body);
+
+    // Check if admin email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: input.adminEmail },
+    });
+
+    if (existingUser) {
+      throw new BadRequestError("User with this email already exists");
+    }
+
+    // Generate slug from university name
+    const slug = input.universityName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    // Check if slug already exists
+    const existingUniversity = await prisma.university.findUnique({
+      where: { slug },
+    });
+
+    if (existingUniversity) {
+      throw new BadRequestError("A university with a similar name already exists. Please contact support.");
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(input.adminPassword, 10);
+
+    // Create university (inactive until admin approval)
+    const university = await prisma.university.create({
+      data: {
+        name: input.universityName,
+        slug,
+        country: input.country,
+        city: input.city,
+        language: input.language,
+        website: input.website || null,
+        description: input.description || null,
+        isActive: false, // Requires admin approval
+      },
+    });
+
+    // Create university partner user (inactive until admin approval)
+    const user = await prisma.user.create({
+      data: {
+        name: input.adminName,
+        email: input.adminEmail,
+        phone: input.adminPhone || null,
+        passwordHash,
+        role: "university",
+        universityId: university.id,
+        isActive: false, // Requires admin approval
+      },
+    });
+
+    // Create profile
+    await prisma.profile.create({
+      data: {
+        userId: user.id,
+      },
+    });
+
+    // Create alert for admin to review and approve
+    await createOperationAlert(
+      "create",
+      "universities",
+      university.name,
+      university.id,
+      null,
+      university.id,
+      {
+        country: university.country,
+        city: university.city,
+        adminEmail: user.email,
+        adminName: user.name,
+        requiresApproval: true,
+        message: `New university registration requires approval: ${university.name}`
+      }
+    );
+
+    // Return success message (no tokens - user needs approval first)
+    res.status(201).json({
+      message: "University registration submitted successfully. Your account is pending admin approval. You will receive an email once your account is activated.",
+      university: {
+        id: university.id,
+        name: university.name,
+        slug: university.slug,
+        isActive: university.isActive,
+      },
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      next(new BadRequestError(error.errors[0].message));
+      return;
+    }
+    next(error);
+  }
+});
+*/
 router.post("/forgot-password", async (req, res, next) => {
     try {
         const { email } = forgotPasswordSchema.parse(req.body);

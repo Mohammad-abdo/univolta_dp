@@ -55,19 +55,6 @@ router.get("/:id", async (req, res, next) => {
       include: {
         programs: true,
         testimonials: true,
-        users: {
-          where: {
-            role: "university",
-            universityId: req.params.id,
-          },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            isActive: true,
-          },
-        },
       },
     });
 

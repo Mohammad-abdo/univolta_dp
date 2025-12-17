@@ -227,7 +227,7 @@ router.post("/", requirePermission("users", "create"), async (req, res, next) =>
       user.name,
       user.id,
       req.user?.id,
-      user.universityId,
+      user.universityId ?? undefined,
       { email: user.email, role: user.role }
     );
 
@@ -263,9 +263,10 @@ router.put("/:id", requirePermission("users", "update"), async (req, res, next) 
     }
 
     // Check if email is being changed and already exists
-    if (input.email && input.email !== currentUser.email) {
+    const inputAny = input as any;
+    if (inputAny.email && inputAny.email !== currentUser.email) {
       const existingUser = await prisma.user.findUnique({
-        where: { email: input.email },
+        where: { email: inputAny.email },
       });
       if (existingUser) {
         throw new BadRequestError("Email already exists");
@@ -273,17 +274,17 @@ router.put("/:id", requirePermission("users", "update"), async (req, res, next) 
     }
 
     const updateData: any = {};
-    if (input.name) updateData.name = input.name;
-    if (input.email) updateData.email = input.email;
-    if (input.phone !== undefined) updateData.phone = input.phone;
+    if (inputAny.name) updateData.name = inputAny.name;
+    if (inputAny.email) updateData.email = inputAny.email;
+    if (inputAny.phone !== undefined) updateData.phone = inputAny.phone;
     if (input.role) updateData.role = input.role;
     if (input.customRoleId !== undefined) updateData.customRoleId = input.customRoleId;
     if (input.isActive !== undefined) updateData.isActive = input.isActive;
     
     // Update password if provided
-    if (input.password) {
+    if (inputAny.password) {
       const bcrypt = (await import("bcryptjs")).default;
-      updateData.passwordHash = await bcrypt.hash(input.password, 10);
+      updateData.passwordHash = await bcrypt.hash(inputAny.password, 10);
     }
 
     const user = await prisma.user.update({
@@ -310,7 +311,7 @@ router.put("/:id", requirePermission("users", "update"), async (req, res, next) 
       user.name,
       user.id,
       req.user?.id,
-      user.universityId,
+      user.universityId ?? undefined,
       { email: user.email, role: user.role, isActive: user.isActive }
     );
 
@@ -362,7 +363,7 @@ router.delete("/:id", requirePermission("users", "delete"), async (req, res, nex
       user.name,
       user.id,
       req.user?.id,
-      user.universityId,
+      user.universityId ?? undefined,
       { email: user.email }
     );
 

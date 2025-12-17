@@ -91,7 +91,7 @@ router.post("/", requirePermission("testimonials", "create"), async (req, res, n
       testimonial.author,
       testimonial.id,
       req.user?.id,
-      testimonial.universityId,
+      testimonial.universityId ?? undefined,
       { title: testimonial.title, rating: testimonial.rating }
     );
 
@@ -120,7 +120,7 @@ router.put("/:id", requirePermission("testimonials", "update"), async (req, res,
       testimonial.author,
       testimonial.id,
       req.user?.id,
-      testimonial.universityId,
+      testimonial.universityId ?? undefined,
       { title: testimonial.title, rating: testimonial.rating }
     );
 
@@ -166,7 +166,7 @@ router.delete("/:id", requirePermission("testimonials", "delete"), async (req, r
       testimonial.author,
       testimonial.id,
       req.user?.id,
-      testimonial.universityId,
+      testimonial.universityId ?? undefined,
       { title: testimonial.title }
     );
 

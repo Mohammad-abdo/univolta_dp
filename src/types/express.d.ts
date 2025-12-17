@@ -7,6 +7,7 @@ declare global {
       email: string;
       name: string | null;
       role: UserRole;
+      universityId?: string | null;
     }
 
     interface Request {

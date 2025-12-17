@@ -12,6 +12,9 @@ type TokenContext = {
 };
 
 export async function createAuthTokens(user: User, context: TokenContext) {
+  const accessTokenOptions: jwt.SignOptions = {
+    expiresIn: env.JWT_ACCESS_EXPIRES as jwt.SignOptions["expiresIn"],
+  };
   const accessToken = jwt.sign(
     {
       sub: user.id,
@@ -19,9 +22,7 @@ export async function createAuthTokens(user: User, context: TokenContext) {
       name: user.name,
     },
     env.JWT_ACCESS_SECRET,
-    {
-      expiresIn: env.JWT_ACCESS_EXPIRES,
-    }
+    accessTokenOptions
   );
 
   const refreshTokenRaw = crypto.randomBytes(48).toString("hex");
@@ -39,15 +40,16 @@ export async function createAuthTokens(user: User, context: TokenContext) {
     },
   });
 
+  const refreshTokenOptions: jwt.SignOptions = {
+    expiresIn: env.JWT_REFRESH_EXPIRES as jwt.SignOptions["expiresIn"],
+  };
   const refreshToken = jwt.sign(
     {
       sub: user.id,
       token: refreshTokenRaw,
     },
     env.JWT_REFRESH_SECRET,
-    {
-      expiresIn: env.JWT_REFRESH_EXPIRES,
-    }
+    refreshTokenOptions
   );
 
   return {

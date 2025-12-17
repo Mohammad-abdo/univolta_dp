@@ -95,9 +95,9 @@ router.post("/:applicationId/process", async (req, res, next) => {
     }
 
     // Calculate fees if not set
-    const applicationFee = application.applicationFee || 100; // Default $100
-    const additionalFee = application.additionalFee || 0;
-    const totalFee = application.totalFee || (applicationFee + additionalFee);
+    const applicationFee = Number(application.applicationFee) || 100; // Default $100
+    const additionalFee = Number(application.additionalFee) || 0;
+    const totalFee = Number(application.totalFee) || (applicationFee + additionalFee);
 
     // Create or update payment
     const payment = await prisma.payment.upsert({
@@ -163,7 +163,7 @@ router.post("/:applicationId/process", async (req, res, next) => {
       data: {
         paymentMethod: input.paymentMethod,
         paymentStatus: finalPaymentStatus, // "paid" for application
-        paymentDetails: payment.paymentDetails,
+        paymentDetails: payment.paymentDetails as any,
         applicationFee: applicationFee,
         additionalFee: additionalFee,
         totalFee: totalFee,

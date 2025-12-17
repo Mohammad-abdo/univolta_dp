@@ -1,16 +1,26 @@
 import { Router } from "express";
 import prisma from "../../config/prisma.js";
 import { createApplicationSchema, listApplicationsQuerySchema, updateApplicationSchema, updateApplicationStatusSchema, } from "./application.validator.js";
-import { requireAuth } from "../../common/middleware/auth.js";
+import { requireAuth, optionalAuth } from "../../common/middleware/auth.js";
 import { requirePermission } from "../../common/middleware/permissions.js";
 import { BadRequestError, NotFoundError } from "../../common/errors/AppError.js";
 import { Prisma } from "@prisma/client";
 import { createOperationAlert, createStatusChangeAlert } from "../alerts/alert.service.js";
 const router = Router();
 // Public route - anyone can create an application
-router.post("/", async (req, res, next) => {
+// Uses optionalAuth to link application to user if they're logged in
+router.post("/", optionalAuth, async (req, res, next) => {
     try {
         const input = createApplicationSchema.parse(req.body);
+        // If user is authenticated, link application to their account
+        // This allows students to see their applications in "My Applications"
+        const userId = req.user?.id || null;
+        console.log("Creating application:", {
+            email: input.email,
+            programId: input.programId,
+            userId: userId,
+            hasUser: !!req.user
+        });
         const application = await prisma.application.create({
             data: {
                 fullName: input.fullName,
@@ -27,7 +37,7 @@ router.post("/", async (req, res, next) => {
                 status: input.status || "PENDING",
                 universityId: input.universityId,
                 programId: input.programId,
-                userId: req.user?.id,
+                userId: userId, // Link to user if authenticated
                 applicationFee: input.applicationFee,
                 additionalFee: input.additionalFee,
                 totalFee: input.totalFee || (input.applicationFee || 0) + (input.additionalFee || 0),
@@ -40,6 +50,11 @@ router.post("/", async (req, res, next) => {
                     select: { name: true, slug: true },
                 },
             },
+        });
+        console.log("✅ Application created:", {
+            id: application.id,
+            userId: application.userId,
+            programId: application.programId
         });
         res.status(201).json(application);
     }
@@ -139,17 +154,49 @@ router.get("/", requirePermission("applications", "read"), async (req, res, next
         const applications = await prisma.application.findMany({
             where,
             orderBy: { createdAt: "desc" },
-            include: {
+            select: {
+                id: true,
+                fullName: true,
+                email: true,
+                phone: true,
+                status: true,
+                paymentStatus: true,
+                paymentMethod: true,
+                applicationFee: true,
+                additionalFee: true,
+                totalFee: true,
+                createdAt: true,
+                updatedAt: true,
+                programId: true,
+                universityId: true,
+                userId: true,
                 university: {
                     select: {
                         id: true,
                         name: true,
+                        slug: true,
                     },
                 },
                 program: {
                     select: {
                         id: true,
                         name: true,
+                        slug: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        paymentStatus: true,
+                        paidAt: true,
+                        amount: true,
+                        currency: true,
                     },
                 },
             },
@@ -243,7 +290,7 @@ router.patch("/:id/status", requirePermission("applications", "update"), async (
             },
         });
         // Create alert for status change
-        await createStatusChangeAlert("applications", application.fullName, application.id, currentApplication.status, status, req.user?.id, application.universityId, {
+        await createStatusChangeAlert("applications", application.fullName, application.id, currentApplication.status, status, req.user?.id, application.universityId ?? undefined, {
             email: application.email,
             universityName: application.university?.name,
             programName: application.program?.name,
@@ -279,7 +326,7 @@ router.delete("/:id", requirePermission("applications", "delete"), async (req, r
             where: { id: req.params.id },
         });
         // Create alert for application deletion
-        await createOperationAlert("delete", "applications", application.fullName, application.id, req.user?.id, application.universityId, { email: application.email });
+        await createOperationAlert("delete", "applications", application.fullName, application.id, req.user?.id, application.universityId ?? undefined, { email: application.email });
         res.status(204).send();
     }
     catch (error) {

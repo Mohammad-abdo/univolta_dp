@@ -103,7 +103,7 @@ app.use("/api/v1", apiRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.on("ready", () => logger.info("Express app is ready"));
+// Express app is ready when it starts listening
 
 export default app;
 

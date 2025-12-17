@@ -13,6 +13,7 @@ import uploadRouter from "../modules/upload/upload.router.js";
 import paymentRouter from "../modules/payments/payment.router.js";
 import partnerRouter from "../modules/partner/partner.router.js";
 import alertRouter from "../modules/alerts/alert.router.js";
+import translationRouter from "../modules/translations/translation.router.js";
 const apiRouter = Router();
 apiRouter.use("/public", publicRouter);
 apiRouter.use("/auth", authRouter);
@@ -28,5 +29,6 @@ apiRouter.use("/roles", roleRouter);
 apiRouter.use("/upload", uploadRouter);
 apiRouter.use("/partner", partnerRouter);
 apiRouter.use("/alerts", alertRouter);
+apiRouter.use("/translations", translationRouter);
 export default apiRouter;
 //# sourceMappingURL=index.js.map

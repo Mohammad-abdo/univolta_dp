@@ -3,7 +3,6 @@ import express from "express";
 import helmet from "helmet";
 import path from "path";
 import env from "./config/env.js";
-import logger from "./config/logger.js";
 import { requestLogger } from "./common/middleware/requestLogger.js";
 import { errorHandler, notFoundHandler } from "./common/middleware/errorHandler.js";
 import healthRouter from "./modules/health/health.router.js";
@@ -88,6 +87,6 @@ app.use("/api/v1/health", healthRouter);
 app.use("/api/v1", apiRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
-app.on("ready", () => logger.info("Express app is ready"));
+// Express app is ready when it starts listening
 export default app;
 //# sourceMappingURL=app.js.map

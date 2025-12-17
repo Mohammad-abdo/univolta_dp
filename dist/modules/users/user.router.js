@@ -203,7 +203,7 @@ router.post("/", requirePermission("users", "create"), async (req, res, next) =>
             },
         });
         // Create alert for user creation
-        await createOperationAlert("create", "users", user.name, user.id, req.user?.id, user.universityId, { email: user.email, role: user.role });
+        await createOperationAlert("create", "users", user.name, user.id, req.user?.id, user.universityId ?? undefined, { email: user.email, role: user.role });
         res.status(201).json(user);
     }
     catch (error) {
@@ -224,9 +224,44 @@ router.put("/:id", requirePermission("users", "update"), async (req, res, next) 
         if (Object.keys(input).length === 0) {
             throw new BadRequestError("At least one field must be provided");
         }
+        // Get current user to check if email already exists (if changing email)
+        const currentUser = await prisma.user.findUnique({
+            where: { id: req.params.id },
+        });
+        if (!currentUser) {
+            throw new NotFoundError("User not found");
+        }
+        // Check if email is being changed and already exists
+        const inputAny = input;
+        if (inputAny.email && inputAny.email !== currentUser.email) {
+            const existingUser = await prisma.user.findUnique({
+                where: { email: inputAny.email },
+            });
+            if (existingUser) {
+                throw new BadRequestError("Email already exists");
+            }
+        }
+        const updateData = {};
+        if (inputAny.name)
+            updateData.name = inputAny.name;
+        if (inputAny.email)
+            updateData.email = inputAny.email;
+        if (inputAny.phone !== undefined)
+            updateData.phone = inputAny.phone;
+        if (input.role)
+            updateData.role = input.role;
+        if (input.customRoleId !== undefined)
+            updateData.customRoleId = input.customRoleId;
+        if (input.isActive !== undefined)
+            updateData.isActive = input.isActive;
+        // Update password if provided
+        if (inputAny.password) {
+            const bcrypt = (await import("bcryptjs")).default;
+            updateData.passwordHash = await bcrypt.hash(inputAny.password, 10);
+        }
         const user = await prisma.user.update({
             where: { id: req.params.id },
-            data: input,
+            data: updateData,
             select: {
                 id: true,
                 name: true,
@@ -241,7 +276,7 @@ router.put("/:id", requirePermission("users", "update"), async (req, res, next) 
             },
         });
         // Create alert for user update
-        await createOperationAlert("update", "users", user.name, user.id, req.user?.id, user.universityId, { email: user.email, role: user.role, isActive: user.isActive });
+        await createOperationAlert("update", "users", user.name, user.id, req.user?.id, user.universityId ?? undefined, { email: user.email, role: user.role, isActive: user.isActive });
         res.json(user);
     }
     catch (error) {
@@ -249,9 +284,15 @@ router.put("/:id", requirePermission("users", "update"), async (req, res, next) 
             next(new BadRequestError(error.errors[0].message));
             return;
         }
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-            next(new NotFoundError("User not found"));
-            return;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            if (error.code === "P2025") {
+                next(new NotFoundError("User not found"));
+                return;
+            }
+            if (error.code === "P2002") {
+                next(new BadRequestError("Email already exists"));
+                return;
+            }
         }
         next(error);
     }
@@ -275,7 +316,7 @@ router.delete("/:id", requirePermission("users", "delete"), async (req, res, nex
             where: { id: req.params.id },
         });
         // Create alert for user deletion
-        await createOperationAlert("delete", "users", user.name, user.id, req.user?.id, user.universityId, { email: user.email });
+        await createOperationAlert("delete", "users", user.name, user.id, req.user?.id, user.universityId ?? undefined, { email: user.email });
         res.status(204).send();
     }
     catch (error) {

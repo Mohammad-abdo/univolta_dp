@@ -5,13 +5,14 @@ import env from "../../config/env.js";
 import prisma from "../../config/prisma.js";
 import { parseDurationToMilliseconds } from "../../common/utils/time.js";
 export async function createAuthTokens(user, context) {
+    const accessTokenOptions = {
+        expiresIn: env.JWT_ACCESS_EXPIRES,
+    };
     const accessToken = jwt.sign({
         sub: user.id,
         role: user.role,
         name: user.name,
-    }, env.JWT_ACCESS_SECRET, {
-        expiresIn: env.JWT_ACCESS_EXPIRES,
-    });
+    }, env.JWT_ACCESS_SECRET, accessTokenOptions);
     const refreshTokenRaw = crypto.randomBytes(48).toString("hex");
     const refreshExpiresAt = new Date(Date.now() + parseDurationToMilliseconds(env.JWT_REFRESH_EXPIRES));
     await prisma.refreshToken.create({
@@ -23,12 +24,13 @@ export async function createAuthTokens(user, context) {
             expiresAt: refreshExpiresAt,
         },
     });
+    const refreshTokenOptions = {
+        expiresIn: env.JWT_REFRESH_EXPIRES,
+    };
     const refreshToken = jwt.sign({
         sub: user.id,
         token: refreshTokenRaw,
-    }, env.JWT_REFRESH_SECRET, {
-        expiresIn: env.JWT_REFRESH_EXPIRES,
-    });
+    }, env.JWT_REFRESH_SECRET, refreshTokenOptions);
     return {
         accessToken,
         refreshToken,

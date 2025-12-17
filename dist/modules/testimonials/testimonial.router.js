@@ -74,7 +74,7 @@ router.post("/", requirePermission("testimonials", "create"), async (req, res, n
             },
         });
         // Create alert for testimonial creation
-        await createOperationAlert("create", "testimonials", testimonial.author, testimonial.id, req.user?.id, testimonial.universityId, { title: testimonial.title, rating: testimonial.rating });
+        await createOperationAlert("create", "testimonials", testimonial.author, testimonial.id, req.user?.id, testimonial.universityId ?? undefined, { title: testimonial.title, rating: testimonial.rating });
         res.status(201).json(testimonial);
     }
     catch (error) {
@@ -93,7 +93,7 @@ router.put("/:id", requirePermission("testimonials", "update"), async (req, res,
             data: input,
         });
         // Create alert for testimonial update
-        await createOperationAlert("update", "testimonials", testimonial.author, testimonial.id, req.user?.id, testimonial.universityId, { title: testimonial.title, rating: testimonial.rating });
+        await createOperationAlert("update", "testimonials", testimonial.author, testimonial.id, req.user?.id, testimonial.universityId ?? undefined, { title: testimonial.title, rating: testimonial.rating });
         res.json(testimonial);
     }
     catch (error) {
@@ -127,7 +127,7 @@ router.delete("/:id", requirePermission("testimonials", "delete"), async (req, r
             where: { id: req.params.id },
         });
         // Create alert for testimonial deletion
-        await createOperationAlert("delete", "testimonials", testimonial.author, testimonial.id, req.user?.id, testimonial.universityId, { title: testimonial.title });
+        await createOperationAlert("delete", "testimonials", testimonial.author, testimonial.id, req.user?.id, testimonial.universityId ?? undefined, { title: testimonial.title });
         res.status(204).send();
     }
     catch (error) {

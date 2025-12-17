@@ -238,7 +238,6 @@ router.get("/:lang", async (req, res, next) => {
         trustedPartnersDesc: "We work with accredited universities across the globe.",
         studentServices: "Student Services",
         studentServicesDesc: "Enjoy extra support like airport pickup, housing, and orientation assistance.",
-        viewAll: "View All",
         howItWorks: "How It Works",
         howToApply: "How to Apply - A Step-by-Step Guide 🔍",
         howToApplyDescription: "We simplify the application process to international universities with just a few steps",
@@ -265,7 +264,6 @@ router.get("/:lang", async (req, res, next) => {
         aboutTheProgram: "About the Program",
         studentData: "Student Data",
         studentDataDesc: "Enter your personal and academic information.",
-        additionalServices: "Additional Services",
         additionalServicesDesc: "Support Services During Studies",
         uploadDocuments: "Upload Documents",
         uploadDocumentsDesc: "Upload the required documents, such as certificates and passport.",
@@ -311,7 +309,6 @@ router.get("/:lang", async (req, res, next) => {
         addService: "Add service",
         enterRequirement: "Enter requirement",
         enterService: "Enter service",
-        programs: "Programs",
         nA: "N/A",
         noDocumentsUploaded: "No documents uploaded",
       },
@@ -537,7 +534,6 @@ router.get("/:lang", async (req, res, next) => {
         trustedPartnersDesc: "نعمل مع جامعات معتمدة في جميع أنحاء العالم.",
         studentServices: "خدمات الطلاب",
         studentServicesDesc: "استمتع بدعم إضافي مثل استقبال المطار، السكن، ومساعدة التوجيه.",
-        viewAll: "عرض الكل",
         howItWorks: "كيف يعمل",
         howToApply: "كيفية التقديم - دليل خطوة بخطوة 🔍",
         howToApplyDescription: "نبسط عملية التقديم للجامعات الدولية بخطوات قليلة فقط",
@@ -564,7 +560,6 @@ router.get("/:lang", async (req, res, next) => {
         aboutTheProgram: "حول البرنامج",
         studentData: "بيانات الطالب",
         studentDataDesc: "أدخل معلوماتك الشخصية والأكاديمية.",
-        additionalServices: "خدمات إضافية",
         additionalServicesDesc: "خدمات الدعم أثناء الدراسة",
         uploadDocuments: "رفع المستندات",
         uploadDocumentsDesc: "ارفع المستندات المطلوبة، مثل الشهادات والجواز.",
@@ -610,7 +605,6 @@ router.get("/:lang", async (req, res, next) => {
         addService: "إضافة خدمة",
         enterRequirement: "أدخل المتطلب",
         enterService: "أدخل الخدمة",
-        programs: "البرامج",
         nA: "غير متاح",
         noDocumentsUploaded: "لم يتم رفع أي مستندات",
       },
