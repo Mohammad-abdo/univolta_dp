@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `user` MODIFY `role` ENUM('admin', 'editor', 'user', 'university') NOT NULL DEFAULT 'user';
+ALTER TABLE `User` MODIFY `role` ENUM('admin', 'editor', 'user', 'university') NOT NULL DEFAULT 'user';
 
 -- CreateTable
 CREATE TABLE `Alert` (

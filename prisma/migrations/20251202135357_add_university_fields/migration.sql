@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `university` ADD COLUMN `about` VARCHAR(191) NULL,
+ALTER TABLE `University` ADD COLUMN `about` VARCHAR(191) NULL,
     ADD COLUMN `admissionRequirements` JSON NULL,
     ADD COLUMN `establishmentYear` INTEGER NULL,
     ADD COLUMN `localRanking` INTEGER NULL,
@@ -9,7 +9,7 @@ ALTER TABLE `university` ADD COLUMN `about` VARCHAR(191) NULL,
     ADD COLUMN `worldRanking` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `customRoleId` VARCHAR(191) NULL;
+ALTER TABLE `User` ADD COLUMN `customRoleId` VARCHAR(191) NULL;
 
 -- CreateTable
 CREATE TABLE `Role` (

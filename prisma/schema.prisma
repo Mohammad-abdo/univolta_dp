@@ -126,7 +126,7 @@ model University {
   city                  String
   language              String
   description           String?
-  about                 String?
+  about                 String?  @db.Text
   website               String?
   logoUrl               String?
   bannerUrl             String?

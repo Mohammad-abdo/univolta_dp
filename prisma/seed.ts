@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { PrismaClient, UserRole, ApplicationStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -1092,24 +1093,109 @@ async function main() {
   const userPasswordHash = await bcrypt.hash("user123", 10);
   const universityPasswordHash = await bcrypt.hash("university123", 10);
 
+  // ========== SANITY CHECK: MIGRATIONS APPLIED ==========
+  // If core tables are missing, seeding can't proceed. Provide a clear, actionable message.
+  try {
+    await prisma.user.count();
+  } catch (error: any) {
+    if (error?.code === "P2021") {
+      console.error(
+        "❌ Database tables are missing (e.g. `User`). You must apply Prisma migrations before running seed.\n" +
+          "Run:\n" +
+          "  npx prisma migrate deploy\n" +
+          "Then:\n" +
+          "  npm run seed\n"
+      );
+      process.exit(1);
+    }
+    throw error;
+  }
+
   // ========== CLEAR EXISTING DATA ==========
   console.log("Clearing existing data...");
-  await prisma.alert.deleteMany();
-  await prisma.applicationStatusHistory.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.applicationDocument.deleteMany();
-  await prisma.application.deleteMany();
-  await prisma.testimonial.deleteMany();
-  await prisma.faq.deleteMany();
-  await prisma.program.deleteMany();
-  await prisma.department.deleteMany();
-  await prisma.semester.deleteMany();
-  await prisma.educationalYear.deleteMany();
-  await prisma.degree.deleteMany();
-  await prisma.university.deleteMany();
-  await prisma.profile.deleteMany();
-  await prisma.refreshToken.deleteMany();
-  await prisma.user.deleteMany();
+  
+  // Delete in order (respecting foreign key constraints)
+  // Wrap in try-catch to handle missing tables gracefully
+  try {
+    await prisma.alert.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error; // P2021 = table doesn't exist
+  }
+  try {
+    await prisma.applicationStatusHistory.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.payment.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.applicationDocument.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.application.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.testimonial.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.faq.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.program.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.department.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.semester.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.educationalYear.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.degree.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.university.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.profile.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.refreshToken.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
+  try {
+    await prisma.user.deleteMany();
+  } catch (error: any) {
+    if (error.code !== 'P2021') throw error;
+  }
 
   // ========== USERS ==========
   console.log("Creating users...");
