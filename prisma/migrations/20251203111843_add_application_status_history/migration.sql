@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `application` ADD COLUMN `academicQualification` VARCHAR(191) NULL,
+ALTER TABLE `Application` ADD COLUMN `academicQualification` VARCHAR(191) NULL,
     ADD COLUMN `additionalFee` DECIMAL(65, 30) NULL DEFAULT 0,
     ADD COLUMN `additionalNotes` VARCHAR(191) NULL,
     ADD COLUMN `additionalServices` JSON NULL,
@@ -14,7 +14,7 @@ ALTER TABLE `application` ADD COLUMN `academicQualification` VARCHAR(191) NULL,
     ADD COLUMN `totalFee` DECIMAL(65, 30) NULL DEFAULT 0;
 
 -- AlterTable
-ALTER TABLE `program` ADD COLUMN `about` VARCHAR(191) NULL,
+ALTER TABLE `Program` ADD COLUMN `about` VARCHAR(191) NULL,
     ADD COLUMN `classSchedule` VARCHAR(191) NULL,
     ADD COLUMN `coreSubjects` JSON NULL,
     ADD COLUMN `department` VARCHAR(191) NULL,

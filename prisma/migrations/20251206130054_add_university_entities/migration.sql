@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `program` ADD COLUMN `degreeId` VARCHAR(191) NULL,
+ALTER TABLE `Program` ADD COLUMN `degreeId` VARCHAR(191) NULL,
     ADD COLUMN `departmentId` VARCHAR(191) NULL,
     ADD COLUMN `educationalYearId` VARCHAR(191) NULL;
 
